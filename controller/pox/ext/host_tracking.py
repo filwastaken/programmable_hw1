@@ -79,10 +79,12 @@ class HostTracker(EventMixin):
             ttl = ip4.ttl
             if ttl < self.ip4_hop: return
             self.ip4_hop = ttl
-    
+
+        # Raising event in case the host is connected to a different switch
+        if self.host_connected_switch != event.dpid: self.raiseEvent(hostMoved())
+        
         self.host_connected_switch = event.dpid
         self.host_connected_networkcard = event.port - 1
-        self.raiseEvent(hostMoved())
         print(f"The host is connected to the switch with dpid {self.host_connected_switch} to the network card eth{self.host_connected_networkcard}")
 
 
