@@ -58,9 +58,7 @@ class HostTracker(EventMixin):
         # We are learning the mac of the host
         if eth_frame.type == ethernet.ARP_TYPE and eth_frame.dst == EthAddr("00:00:00:00:11:22"):
             arp_packet = event.parsed.find("arp")
-            if arp_packet.opcode == arp.REPLY:
-                print("Host response")
-                self.host_addresses.add(eth_frame.src)
+            if arp_packet.opcode == arp.REPLY: self.host_addresses.add(eth_frame.src)
             return
 
         # Check that the packet is coming from the host
@@ -81,7 +79,7 @@ class HostTracker(EventMixin):
             self.ip4_hop = ttl
 
         # Raising event in case the host is connected to a different switch
-        if self.host_connected_switch != event.dpid: self.raiseEvent(hostMoved())
+        if self.host_connected_switch != event.dpid or self.host_connected_networkcard != event.port - 1: self.raiseEvent(hostMoved())
         
         self.host_connected_switch = event.dpid
         self.host_connected_networkcard = event.port - 1

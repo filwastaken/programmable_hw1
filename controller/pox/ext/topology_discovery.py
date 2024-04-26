@@ -29,6 +29,8 @@ class linkDiscovery():
 		self.links = {}
 		self.switch_id = {}
 		self.id = 0
+		self.graph = ""
+
 		core.openflow.addListeners(self)
 		Timer(5, self.sendProbes, recurring=True)
 
@@ -83,22 +85,29 @@ class linkDiscovery():
 
 	def getGraph(self, lastPath):
 		N = len(self.switches)
-		adj = np.zeros((N, N))
 
-		if lastPath == []:
+		if len(lastPath) == 0:
+			adj = np.zeros((N, N))
 			for link in self.links: adj[self.links[link].sid1, self.links[link].sid2] = 1
-		else:
-			for link in self.links:
-				if link in lastPath: adj[self.links[link].sid1, self.links[link].sid2] = 1
-				elif link not in lastPath:
-					if any((link.sid1 == self.links[pathLink].sid1 or
-			 				link.sid1 == self.links[pathLink].sid2 or
-							link.sid2 == self.links[pathLink].sid1 or
-							link.sid2 == self.links[pathLink].sid2) for pathLink in lastPath): adj[self.links[link].sid1, self.links[link].sid2] = 2
-				else: adj[self.links[link].sid1, self.links[link].sid2] = 3
+			self.graph = nx.Graph(adj)
 
-		graph = nx.from_numpy_matrix(adj)
-		return graph
+		else:
+
+			for switch in lastPath:
+				for connected_switch in self.graph[switch]:
+					if connected_switch in lastPath: self.graph[switch][connected_switch]['weight'] = 0
+					else:
+						# It does self.graph[connected_switch][switch] automatically
+						self.graph[switch][connected_switch]['weight'] = 2
+
+						_switch_pos = lastPath.index(switch)
+
+						if (_switch_pos == 0 and not lastPath[1] == connected_switch) \
+							or (_switch_pos == len(lastPath) - 1 and not lastPath[-2] == connected_switch) \
+							or (_switch_pos > 0 and _switch_pos < len(lastPath) - 1 and not (lastPath[_switch_pos - 1] == connected_switch or lastPath[_switch_pos + 1] == connected_switch)):
+								self.graph[switch][connected_switch]['weight'] += (lastPath.index(switch) + 1)
+
+		return self.graph
 
 def launch():
 	core.registerNew(linkDiscovery)
