@@ -2,6 +2,7 @@
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.addresses import EthAddr, IPAddr
+from pox.lib.util import dpidToStr
 
 # Event handling imports
 from pox.lib.revent.revent import Event, EventMixin
@@ -9,6 +10,7 @@ from pox.lib.revent.revent import Event, EventMixin
 # Packet imports
 from pox.lib.packet.ethernet import ethernet
 from pox.lib.packet.arp import arp
+
 
 class hostMoved(Event):
     def __init__(self):
@@ -79,11 +81,13 @@ class HostTracker(EventMixin):
             self.ip4_hop = ttl
 
         # Raising event in case the host is connected to a different switch
-        if self.host_connected_switch != event.dpid or self.host_connected_networkcard != event.port - 1: self.raiseEvent(hostMoved())
-        
+        if self.host_connected_switch == event.dpid and self.host_connected_networkcard == event.port - 1:
+            return
+
         self.host_connected_switch = event.dpid
         self.host_connected_networkcard = event.port - 1
-        print(f"The host is connected to the switch with dpid {self.host_connected_switch} to the network card eth{self.host_connected_networkcard}")
+        print(f"The host is connected to the switch with dpid {dpidToStr(self.host_connected_switch)} to the network card eth{self.host_connected_networkcard}")
+        self.raiseEvent(hostMoved())
 
 
 def launch():

@@ -11,7 +11,7 @@ from pox.lib.revent.revent import EventMixin
 from pox.lib.packet.ethernet import ethernet
 from pox.lib.packet.arp import arp
 
-class ARPResponder(EventMixin):
+class FakeGateway(EventMixin):
     def __init__(self):
         core.openflow.addListeners(self)
         self.gateway_mac = ""
@@ -33,7 +33,7 @@ class ARPResponder(EventMixin):
         # Ignoring fake_gateway and topology_discovery mac addresses
         if arp_req.hwsrc == EthAddr("00:00:00:00:11:22") or arp_req.hwsrc == EthAddr("00:11:22:33:44:55"): return
 
-        print(f"Arp request recieved with source address {arp_req.hwsrc} and destination {arp_req.hwdst} on port {event.port}")
+        print(f"Arp request recieved with source address {arp_req.hwsrc} and destination {arp_req.hwdst} on port {event.port} by switch {dpidToStr(event.dpid)}")
 
         # Creating arp response
         arp_reply = arp()
@@ -62,5 +62,5 @@ class ARPResponder(EventMixin):
         event.connection.send(msg)
 
 def launch():
-    core.registerNew(ARPResponder)
+    core.registerNew(FakeGateway)
     print("ARP Responder succesfully registered")

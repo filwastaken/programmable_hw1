@@ -93,18 +93,23 @@ class linkDiscovery():
 
 		else:
 
-			for switch in lastPath:
+			for index in range(len(lastPath)):
+				switch = lastPath[index]
+
 				for connected_switch in self.graph[switch]:
-					if connected_switch in lastPath: self.graph[switch][connected_switch]['weight'] = 0
+					if (index == 0 and lastPath[1] == connected_switch) or \
+						(index == len(lastPath) - 1 and lastPath[index - 1] == connected_switch) or \
+						(index > 0 and index < len(lastPath) -1 and (lastPath[index - 1] == connected_switch or lastPath[index + 1] == connected_switch)):
+							self.graph[switch][connected_switch]['weight'] = 0
 					else:
 						# It does self.graph[connected_switch][switch] automatically
 						self.graph[switch][connected_switch]['weight'] = 2
 
 						_switch_pos = lastPath.index(switch)
 
-						if (_switch_pos == 0 and not lastPath[1] == connected_switch) \
-							or (_switch_pos == len(lastPath) - 1 and not lastPath[-2] == connected_switch) \
-							or (_switch_pos > 0 and _switch_pos < len(lastPath) - 1 and not (lastPath[_switch_pos - 1] == connected_switch or lastPath[_switch_pos + 1] == connected_switch)):
+						if (_switch_pos == 0 and not lastPath[1] == connected_switch) or \
+							(_switch_pos == len(lastPath) - 1 and not lastPath[-2] == connected_switch) or \
+							(_switch_pos > 0 and _switch_pos < len(lastPath) - 1 and not (lastPath[_switch_pos - 1] == connected_switch or lastPath[_switch_pos + 1] == connected_switch)):
 								self.graph[switch][connected_switch]['weight'] += (lastPath.index(switch) + 1)
 
 		return self.graph

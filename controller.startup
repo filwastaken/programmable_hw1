@@ -1,5 +1,5 @@
 ip addr add 20.0.1.100/24 dev eth0
 chmod +x /pox/pox.py
 echo "python3 () { source /shared/venv/bin/activate; python3.9 \$@; deactivate; }" > /root/.bashrc
-echo "alias prun=\"python3 /pox/pox.py fake_gateway routing topology_discovery host_tracking\"" >> /root/.bashrc
+echo "alias runcontroller=\"python3 /pox/pox.py fake_gateway host_tracking topology_discovery routing\"" >> /root/.bashrc
 
