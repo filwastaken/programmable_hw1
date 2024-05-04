@@ -1,8 +1,9 @@
 ip addr add 20.0.1.5/24 dev eth2
-ip addr add 192.168.1.1/31 dev eth0
+ip addr add 192.168.1.0/31 dev eth0
 
 /usr/share/openvswitch/scripts/ovs-ctl --system-id=random start
 ovs-vsctl add-br gw
+ovs-vsctl add-port gw eth0
 ovs-vsctl add-port gw eth1
 
 ovs-vsctl set bridge gw protocols=OpenFlow10

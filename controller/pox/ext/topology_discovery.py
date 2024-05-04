@@ -1,12 +1,9 @@
 import pox.openflow.libopenflow_01 as of
 from pox.core import core
 from pox.lib.recoco import Timer
-from pox.lib.revent.revent import EventMixin
-from pox.lib.revent.revent import Event
 from pox.lib.addresses import EthAddr
 from pox.lib.packet.ethernet import ethernet
 from pox.lib.packet.arp import arp
-from pox.lib.packet.lldp import lldp
 from pox.lib.util import dpidToStr
 
 import numpy as np
@@ -23,7 +20,6 @@ class Link():
 		self.port2 = int(port2)
 
 class linkDiscovery():
-
 	def __init__(self):
 		self.switches = {}
 		self.links = {}
@@ -43,7 +39,7 @@ class linkDiscovery():
 
 	def _handle_PacketIn(self, event):
 		eth_frame = event.parsed
-		if eth_frame.src == EthAddr("00:11:22:33:44:55"):
+		if eth_frame.src == EthAddr("00:00:00:01:10:11"):
 			eth_dst = eth_frame.dst.toStr().split(':')
 			sid1 = int(eth_dst[4])
 			dpid1 = self.switch_id[sid1]
@@ -63,7 +59,7 @@ class linkDiscovery():
 			for port in self.switches[dpid]:
 				if port.port_no == 65534: continue
 				
-				mac_src = EthAddr("00:11:22:33:44:55")
+				mac_src = EthAddr("00:00:00:01:10:11")
 				mac_dst = EthAddr("00:00:00:00:" + str(sid) + ":" + str(port.port_no))
 				ether = ethernet()
 				ether.type = ethernet.ARP_TYPE
@@ -78,7 +74,7 @@ class linkDiscovery():
 	def install_flow_rule(self, dpid):
 		msg = of.ofp_flow_mod()
 		msg.priority = 50000
-		match = of.ofp_match(dl_src = EthAddr("00:11:22:33:44:55"))
+		match = of.ofp_match(dl_src = EthAddr("00:00:00:01:10:11"))
 		msg.match = match
 		msg.actions = [of.ofp_action_output(port = of.OFPP_CONTROLLER)]
 		core.openflow.sendToDPID(dpid, msg)

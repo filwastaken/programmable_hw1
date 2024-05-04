@@ -9,12 +9,18 @@ def signal_handler(num, frame):
 	exit(0)
 
 def main(host):
+
+	subprocess.call("ifconfig eth0 down && ifconfig eth1 down && ifconfig eth2 down && ifconfig eth3 down", shell=True)
+
 	while True:
 		interface = random.randint(0, 3)
 		amount = random.randint(2, 20)
+
+		subprocess.call(f"ifconfig eth{interface} up", shell=True)
 		print(f"Sending {amount} pings to {host} via the interface eth{interface}")
 		subprocess.call(f"ping {host} -c {amount} -I eth{interface}", shell=True)
 		print("----------------------------------------------------------\nDone!\n")
+		subprocess.call(f"ifconfig eth{interface} down", shell=True)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(prog="Python mobility simulator", description="This program simulates the movement of an host in python", epilog="------------")
