@@ -32,7 +32,7 @@ class HostTracker(EventMixin):
 
         self.last_packet = -1
 
-        self.host_addresses = []
+        self.host_addresses = set()
         self.max_hosts = 4 # There are 4 interfaces for the host
 
     def _handle_ConnectionUp(self, event):
@@ -66,7 +66,7 @@ class HostTracker(EventMixin):
         # We are learning the mac of the host
         if eth_frame.type == ethernet.ARP_TYPE and eth_frame.dst == EthAddr("00:00:00:01:10:10"):
             arp_packet = event.parsed.find("arp")
-            if arp_packet.opcode == arp.REPLY: self.host_addresses.append(eth_frame.src)
+            if arp_packet.opcode == arp.REPLY: self.host_addresses.add(eth_frame.src)
             return
 
         # Check that the packet is coming from the host

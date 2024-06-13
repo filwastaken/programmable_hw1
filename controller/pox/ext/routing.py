@@ -91,7 +91,7 @@ class Routing():
 		
 		# TODO: Come funziona ??????
 		# Modify rules (moving host means changing ports and mac address)
-  		# if len(modify_rules) > 0: print("Installed the following flows:") TODO: Uncomment once modify rules works
+  		# if len(modify_rules) > 0: print("Modifying the following flows:") TODO: Uncomment once modify rules works
 		# for rule in modify_rules:
 		#	link = core.linkDiscovery.links[rule]
 

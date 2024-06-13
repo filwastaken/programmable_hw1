@@ -103,7 +103,7 @@ class FakeGateway(EventMixin):
                     # "First flow" in bidirectional_flowrule
                     saved_eth_frame.src = self.gateway_mac
                     saved_eth_frame.dst = self.saved_macs.get(ip_dest)
-                elif saved_eth_frame.payload.srcip == ip_dest and saved_eth_frame.payload.dstip == ip_sourcrp_message.protodst:
+                elif saved_eth_frame.payload.srcip == ip_dest and saved_eth_frame.payload.dstip == ip_source:
                     # "Second flow" in bidirectional_flowrule
                     saved_eth_frame.src = self.gateway_mac
                     saved_eth_frame.dst = self.saved_macs.get(ip_source)
