@@ -55,7 +55,7 @@ class FakeGateway(EventMixin):
                 self.saved_macs[ip4.srcip] = eth_frame.src
             self.handle_gateway_routing(event, eth_frame, ip4, arp_message)
 
-        self.handle_mac_requests(event, arp_message, eth_frame)
+        if(self.gateway_mac != ""): self.handle_mac_requests(event, arp_message, eth_frame)
 
         if len(self.old_messages) > 0:
             print("Stored messages: ")

@@ -9,10 +9,13 @@ def sigint(num, frame):
 	exit(0)
 
 def main(host):
+
+	subprocess.call("ifconfig eth0 down && ifconfig eth1 down && ifconfig eth2 down && ifconfig eth3 down", shell=True)
 	while True:
 		interface = random.randint(0, 3)
-		amount = random.randint(2, 20)
+		amount = random.randint(2, 15)
 
+		subprocess.call(f"ifconfig eth{interface} up", shell=True)
 		print(f"Sending {amount} pings to {host} via the interface eth{interface}")
 		subprocess.call(f"ping {host} -c {amount} -I eth{interface}", shell=True)
 		print("----------------------------------------------------------\nDone!\n")

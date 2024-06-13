@@ -2,10 +2,12 @@
 from pox.core import core
 from pox.lib.util import strToDPID
 import pox.openflow.libopenflow_01 as of
+from pox.lib.recoco import Timer
 
 # Other imports
 import numpy as np
 import networkx as nx
+import time
 
 # Own imports
 from host_tracking import hostMoved
@@ -37,7 +39,8 @@ class Routing():
 		except nx.NetworkXNoPath:
 			print(f"No route found from {switch_src} to {switch_dst}")
 
-			# TODO: If this happends, it doesn't recalculate until the route is found
+			# Waiting 15 seconds before trying again
+			Timer(15, self._handle_hostMoved, args=[event], recurring=False)
 			return
 			
 		# Installing and removing the flow rules to every switch
