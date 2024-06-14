@@ -47,7 +47,6 @@ class Routing():
 		# Finding all the rules that should be installed by the new path:
 		add_rules = []
 		remove_rules = []
-		modify_rules = []
 
 		for switch in range(len(path) - 1):
 			add_rules.append(f"{path[switch]}_{path[switch+1]}")
