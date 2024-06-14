@@ -5,12 +5,12 @@ This project creates the following pox applications:
 - Routing, implemented in [routing.py](/controller/pox/ext/routing.py)
 - Topology Discovery, implemented in [topology_discovery.py](/controller/pox/ext/topology_discovery.py)
 
-This project is built upon the following [topology]()
+This project is built upon the following [topology](/shared/topology.png)
 
 # Topology Discovery
 Topology discovery installs two handles to discover the topology dinamically:
-1. _handle_ConnectionUp ([line 40](TODO: add permalink))
-2. _handle_PacketIn ([line 33](TODO: add permalink))
+1. _handle_ConnectionUp ([line 33](https://github.com/filwastaken/programmable_hw1/blob/main/controller/pox/ext/topology_discovery.py#L33))
+2. _handle_PacketIn ([line 40](https://github.com/filwastaken/programmable_hw1/blob/main/controller/pox/ext/topology_discovery.py#L40))
 
 ## ConnectionUp event
 Once a switch connects to the controller, it is saved into a list used to send probes. In particular, it sends an arp packet with the source ethernet address
@@ -70,12 +70,12 @@ def getGraph(self, lastPath):
 						self.graph[switch][connected_switch]['weight'] += (lastPath.index(switch) + 1)
 ```
 
-link to the function: [getGraph](TODO: Add permalink)
+link to the function: [getGraph](https://github.com/filwastaken/programmable_hw1/blob/main/controller/pox/ext/topology_discovery.py#L82)
 
 # Host tracking
 Host tracking installs two handlers to follow a mobile host through different access points, represented as a connection to a particular switch interface:
-1. _handle_ConnectionUp, ([line 38](TODO: add permalink))
-2. _handle_PacketIn, ([line 62](TODO: add permalink))
+1. _handle_ConnectionUp, ([line 38](https://github.com/filwastaken/programmable_hw1/blob/main/controller/pox/ext/host_tracking.py#L38))
+2. _handle_PacketIn, ([line 62](https://github.com/filwastaken/programmable_hw1/blob/main/controller/pox/ext/host_tracking.py#L62))
 
 ## ConnectionUp event
 On ConnectionUp, every switch tries to find any connected host by sending an arp request through any port not connected to the controller. In particlar, it sets the source address as:
@@ -117,7 +117,7 @@ class hostMoved(Event):
 ```
 
 # Routing
-The routing app installs the hostMoved handle. Every time this function is called, the minimum path is found with the networkx library. At this point, simple logic is used to divide between the flows that needs to be added and removed based on the existing path and the calculated path in the following manner:
+The routing app installs the hostMoved handle ([link](https://github.com/filwastaken/programmable_hw1/blob/main/controller/pox/ext/routing.py#L20) to the function). Every time this function is called, the minimum path is found with the networkx library. At this point, simple logic is used to divide between the flows that needs to be added and removed based on the existing path and the calculated path in the following manner:
 
 ```python
 # Installing and removing the flow rules to every switch
@@ -169,12 +169,12 @@ self.lastPath = path
 return None
 ```
 
-Furthermore, a timer is used to call the function again in case there are missing information, such as the switch dpid the host is connected to or the switch dpid. The timer is used in case no path can be found too. This may occur in case the pox application has not yet found all links and finished building the graph.
+Furthermore, a timer is used to call the function again in case there are missing information, such as the switch dpid the host is connected to or the switch dpid. The timer is used in case no path can be found too. This may occur in case the pox application has not yet found all links and finished building the graph. The timer is set to be 'non recurring', meaning it will call the function only once after waiting 5 seconds without blocking execution.
 
 # Fake Gateway
 The fake gateway installs two handlers to use a switch as a fake gateway towards the internet:
-1. _handle_ConnectionUp, ([line 38](TODO: add permalink))
-2. _handle_packetIn, ([line 38](TODO: add permalink))
+1. _handle_ConnectionUp, ([line 30](https://github.com/filwastaken/programmable_hw1/blob/384c4868f479fc230f61333286015aa74740e3b2/controller/pox/ext/fake_gateway.py#L30))
+2. _handle_packetIn, ([line 47](https://github.com/filwastaken/programmable_hw1/blob/384c4868f479fc230f61333286015aa74740e3b2/controller/pox/ext/fake_gateway.py#L47))
 
 ## ConnectionUp event
 On Connection Up the function returns for every switch that is not the fake gateway, saving the gateway dpid. In particular, the gateway ethernet address and the port number of the interface going towards the internet as well as those of the interface towards the other pox switches.
@@ -183,15 +183,15 @@ On Connection Up the function returns for every switch that is not the fake gate
 On Packet in the function we handle mac requests, handle gateway routing and store messages that cannot yet be sent.
 
 ### Gateway routing
-If the switch running the PacketIn event is the fake gateway switch, then we can first learn about the ethernet address associated to a particular ip if not known and call the function [handle_gateway_routing](TODO: add permalink)
+If the switch running the PacketIn event is the fake gateway switch, then we can first learn about the ethernet address associated to a particular ip if not known and call the function [handle_gateway_routing](https://github.com/filwastaken/programmable_hw1/blob/main/controller/pox/ext/fake_gateway.py#L66)
 
 ### Handle mac requests
 Otherwise, any switch will handle mac requests by first ignoring any 'fake' arp requests that were generated by fake_gateway, host_tracking and topology discovery. Once it has been assured that the arp request is from a valid host, the switch will reply with an arp reply with the gateway mac as the source address. This true of course as long as the gateway mac address is known, otherwise the requests is just dropped. This may happen because a request arrived before the switch representing the fake gateway has connected.
 
-link to the function: [handle_mac_requests](TODO: Add permalink)
+link to the function: [handle_mac_requests](https://github.com/filwastaken/programmable_hw1/blob/main/controller/pox/ext/fake_gateway.py#L146)
 
 ### Handle Gateway Routing
-This function handles messages passing through the fake gateway. In particular, it manages the flow rules between two hosts separated by the gateway: one managed by the pox network, one in the internet. Once any non-arp message is recieved by the fake-gateway, as long as the switch knows both ethernet addresses for the two hosts, it will install the flow rules with the function [install_bidirectional_flowrules](TODO: Add perma link). Once the flowrule is installed it emptys the message queue for all the messages that apply to that flow and sends the messages. Otherwise, if the ethernet is not known for the destination, an arp request is made. Upon recieving an arp reply messages, the mac is saved in a dictionary and the messages are sent since both ethernet address of the source and destination are known.
+This function handles messages passing through the fake gateway. In particular, it manages the flow rules between two hosts separated by the gateway: one managed by the pox network, one in the internet. Once any non-arp message is recieved by the fake-gateway, as long as the switch knows both ethernet addresses for the two hosts, it will install the flow rules with the function [install_bidirectional_flowrules](https://github.com/filwastaken/programmable_hw1/blob/main/controller/pox/ext/fake_gateway.py#L187). Once the flowrule is installed it emptys the message queue for all the messages that apply to that flow and sends the messages. Otherwise, if the ethernet is not known for the destination, an arp request is made. Upon recieving an arp reply messages, the mac is saved in a dictionary and the messages are sent since both ethernet address of the source and destination are known.
 
 ## Bidirectional flow rule installation
 This function handles the installation of two flows for any connection. In particular, it changes the source ethernet address with the fake gateway address, as in a SNAT and sets the destination address as the real ethernet address: by default the destination address is the gateway address since any switch will reply with the gateway MAC for any arp requests.
