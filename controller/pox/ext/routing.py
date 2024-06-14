@@ -5,9 +5,7 @@ import pox.openflow.libopenflow_01 as of
 from pox.lib.recoco import Timer
 
 # Other imports
-import numpy as np
 import networkx as nx
-import time
 
 # Own imports
 from host_tracking import hostMoved
@@ -25,6 +23,8 @@ class Routing():
 		
 		if(switch_src == '' or switch_dst == ''):
 			print(f"No route found from src ({switch_src}) to dst ({switch_dst}). If they appear blank, they will be populated soon.")
+			# Waiting 5 seconds before trying again
+			Timer(5, self._handle_hostMoved, args=[event], recurring=False)
 			return
 
 		S = list(core.linkDiscovery.switch_id.keys())[list(core.linkDiscovery.switch_id.values()).index(switch_src)]
@@ -39,8 +39,8 @@ class Routing():
 		except nx.NetworkXNoPath:
 			print(f"No route found from {switch_src} to {switch_dst}")
 
-			# Waiting 15 seconds before trying again
-			Timer(15, self._handle_hostMoved, args=[event], recurring=False)
+			# Waiting 5 seconds before trying again
+			Timer(5, self._handle_hostMoved, args=[event], recurring=False)
 			return
 			
 		# Installing and removing the flow rules to every switch
@@ -55,10 +55,7 @@ class Routing():
 		# Removing the rules that where already installed (all the rules that are not in the new path must be removed)
 		for switch in range(len(self.lastPath) - 1):
 			flow = f"{self.lastPath[switch]}_{self.lastPath[switch+1]}"
-			if(flow in add_rules):
-			#	add_rules.remove(flow) TODO: Uncomment once modify rules works!
-				modify_rules.append(flow)
-				remove_rules.append(flow) # TODO: Remove once modify rules works!
+			if(flow in add_rules): add_rules.remove(flow)
 			else: remove_rules.append(flow)
 		
 		# Delete old flowrule
@@ -66,13 +63,6 @@ class Routing():
 			print("Deleted old rule from switch to host:")
 			old_first_link = core.linkDiscovery.links[f'{self.lastPath[0]}_{self.lastPath[1]}']
 			self.install_flowrule(of.OFPFC_DELETE, old_first_link.sid1, 'host', old_first_link.dpid1, event.old_mac, event.old_port)
-
-		# Install flowrule from switch to host
-		print("Installed new rule from switch to host:")
-		new_first_link = core.linkDiscovery.links[f'{path[0]}_{path[1]}']
-		self.install_flowrule(of.OFPFC_ADD, new_first_link.sid1, 'host', new_first_link.dpid1, event.new_mac, event.new_port)
-		
-		self.lastPath = path
 
 		# Removing the unused rules
 		if len(remove_rules) > 0: print("Removed the following flows:")
@@ -92,15 +82,13 @@ class Routing():
 			self.install_flowrule(of.OFPFC_ADD, link.sid1, link.sid2, link.dpid1, core.FakeGateway.gateway_mac, link.port1)
 			self.install_flowrule(of.OFPFC_ADD, link.sid2, link.sid1, link.dpid2, event.new_mac, link.port2)
 		
-		# TODO: Come funziona ??????
-		# Modify rules (moving host means changing ports and mac address)
-  		# if len(modify_rules) > 0: print("Modifying the following flows:") TODO: Uncomment once modify rules works
-		# for rule in modify_rules:
-		#	link = core.linkDiscovery.links[rule]
-
-			# Modifying bidirectional rules:
-		#	self.install_flowrule(link.sid1, of.OFPFC_MODIFY_STRICT, link.sid2, link.dpid1, event.new_mac, link.port1)
-		#	self.install_flowrule(link.sid1, of.OFPFC_MODIFY_STRICT, link.sid2, link.dpid2, event.new_mac, link.port2)
+		# Updating flowrules from switch to host
+		print("Installed new rule from switch to host:")
+		new_first_link = core.linkDiscovery.links[f'{path[0]}_{path[1]}']
+		self.install_flowrule(of.OFPFC_ADD, new_first_link.sid1, 'host', new_first_link.dpid1, event.new_mac, event.new_port)
+		
+		print(f"Previous path: {self.lastPath}, current path: {path}, items to install: {add_rules} and items to remove: {remove_rules}")
+		self.lastPath = path
 
 		return None
 	

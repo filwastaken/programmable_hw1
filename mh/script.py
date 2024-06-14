@@ -11,11 +11,18 @@ def sigint(num, frame):
 def main(host):
 
 	subprocess.call("ifconfig eth0 down && ifconfig eth1 down && ifconfig eth2 down && ifconfig eth3 down", shell=True)
-	while True:
-		interface = random.randint(0, 3)
-		amount = random.randint(2, 15)
+	lastInterface = -1
+	interface = -1
 
-		subprocess.call(f"ifconfig eth{interface} up", shell=True)
+	while True:
+	
+		# Choosing interface to send packet thorugh. Must be different than the last one to force a "mobility"
+		while interface == lastInterface: interface = random.randint(0, 3)
+		lastInterface = interface
+
+		amount = random.randint(5, 15)
+
+		subprocess.call(f"ifconfig eth{interface} up && ip route add default via 10.0.1.{interface+1}", shell=True)
 		print(f"Sending {amount} pings to {host} via the interface eth{interface}")
 		subprocess.call(f"ping {host} -c {amount} -I eth{interface}", shell=True)
 		print("----------------------------------------------------------\nDone!\n")
